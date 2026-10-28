@@ -6,7 +6,24 @@ import streamlit as st
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-model = load_model("sentiment_lstm.keras")
+import os
+import requests
+
+MODEL_URL = "https://huggingface.co/theravigupta09/sentiment-lstm-model/resolve/main/sentiment_lstm.keras"
+MODEL_PATH = "/tmp/sentiment_lstm.keras"
+
+@st.cache_resource
+def get_model():
+    if not os.path.exists(MODEL_PATH):
+        response = requests.get(MODEL_URL, timeout=300)
+        response.raise_for_status()
+
+        with open(MODEL_PATH, "wb") as f:
+            f.write(response.content)
+
+    return load_model(MODEL_PATH)
+
+model = get_model()
 
 with open("tokenizer.pkl", "rb") as f:
     tokenizer = pickle.load(f)
